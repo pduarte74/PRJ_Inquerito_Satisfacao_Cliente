@@ -1,0 +1,48 @@
+# Credentials (NUNCA COMMIT!)
+config/client-secret.encrypted
+config/settings.json
+config/temp-*.txt
+
+# PowerShell
+*.ps1xml
+*.log
+
+# Solution exports (muito grandes - fazer backup separadamente)
+solution-exports/*.zip
+solution-exports/**/*.zip
+
+# Working directories
+solution-working/
+temp/
+.temp/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/settings.json
+.vs/
+*.suo
+*.user
+
+# Node (se usar extract-forms-questions.js)
+node_modules/
+package-lock.json
+
+# Python (se usar Python scripts)
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.bak
+*~

@@ -1,0 +1,44 @@
+{
+  "project": {
+    "name": "[Nome do Projeto]",
+    "description": "[Descrição curta]",
+    "version": "1.0.0",
+    "environment": "development"
+  },
+  "azure": {
+    "tenantId": "[Directory (tenant) ID do Azure AD]",
+    "clientId": "[Application (client) ID do App Registration]",
+    "clientSecretFile": "config/client-secret.encrypted"
+  },
+  "sharepoint": {
+    "siteUrl": "https://[tenant].sharepoint.com/sites/[site-name]",
+    "siteName": "[Nome do Site]",
+    "siteId": "[GUID - preencher após criar site]",
+    "listName": "[Nome da Lista SharePoint]",
+    "listId": "[GUID - preencher após criar lista]"
+  },
+  "powerPlatform": {
+    "environmentName": "Default-[TenantId]",
+    "environmentId": "[GUID - obter de Get-PowerAppEnvironment]",
+    "dataverseUrl": "https://[org-unique-name].crm4.dynamics.com/",
+    "solutionName": "[nome-da-solucao-lowercase]",
+    "solutionDisplayName": "[Nome da Solução Display]",
+    "solutionId": "[GUID - preencher após criar solução]"
+  },
+  "forms": {
+    "formId": "[Form ID - obter do URL do Forms]",
+    "formUrl": "https://forms.office.com/Pages/ResponsePage.aspx?id=[formId]",
+    "formName": "[Nome do Formulário]"
+  },
+  "flows": {
+    "mainFlow": {
+      "name": "FLX_[Projeto]_[Funcao]",
+      "id": "[GUID - preencher após criar]",
+      "description": "Flow principal: Forms → SharePoint"
+    }
+  },
+  "notifications": {
+    "teamsChannelUrl": "[URL do webhook Teams - opcional]",
+    "emailNotifications": "[email@empresa.com - opcional]"
+  }
+}
