@@ -8,12 +8,24 @@
     }
   },
   "triggers": {
-    "manual": {
-      "type": "Request",
-      "kind": "Button",
-      "inputs": {
-        "schema": {}
-      }
+    "Recurrence": {
+      "recurrence": {
+        "frequency": "Week",
+        "interval": 1,
+        "schedule": {
+          "weekDays": [
+            "Monday"
+          ],
+          "hours": [
+            "10"
+          ],
+          "minutes": [
+            0
+          ]
+        },
+        "timeZone": "GMT Standard Time"
+      },
+      "type": "Recurrence"
     }
   },
   "actions": {

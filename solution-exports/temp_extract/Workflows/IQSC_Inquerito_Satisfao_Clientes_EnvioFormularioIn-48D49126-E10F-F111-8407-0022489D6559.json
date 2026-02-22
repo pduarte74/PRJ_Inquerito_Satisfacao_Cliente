@@ -1,0 +1,176 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "prod_sharedsharepointonline_58b17"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "prod_sharedoffice365_xxxxx"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "schedule": {
+              "weekDays": [
+                "Monday"
+              ],
+              "hours": [
+                "10"
+              ],
+              "minutes": [
+                0
+              ]
+            },
+            "timeZone": "GMT Standard Time"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Get_pending_contacts": {
+          "runAfter": {},
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+              "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+              "query": {
+                "$filter": "EstadoInquerito eq 'Pendente'"
+              }
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each_contact": {
+          "foreach": "@outputs('Get_pending_contacts')?['body/value']",
+          "actions": {
+            "Compose_Prefill_Link": {
+              "runAfter": {},
+              "type": "Compose",
+              "inputs": "@concat('https://forms.office.com/Pages/ResponsePage.aspx?id=8geWAb3LXkKnsbyNDZej5D2DIYsnsUZNh2DUOrRLJdtURFFMQzBBVFNXTU9OVEZGWlExT1dYMDE5NiQlQCN0PWcu', '&r4a23b53b26c94fceb200c0bb59ca92d9=', encodeUriComponent(items('Apply_to_each_contact')?['Title']), '&r7b2bd52ed2764c57803595d6c3ca2bb7=', encodeUriComponent(items('Apply_to_each_contact')?['EmailContacto']), '&rd1db5d1cfeb04e50a01a18b4e4dc2bca=', encodeUriComponent(items('Apply_to_each_contact')?['Funcao']), '&r093e6f2fc8744c43990e68b5eda96adc=', encodeUriComponent(items('Apply_to_each_contact')?['Entidade']))"
+            },
+            "Compose_Deadline": {
+              "runAfter": {
+                "Compose_Prefill_Link": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Compose",
+              "inputs": "@addDays(utcNow(), 15)"
+            },
+            "Send_survey_email": {
+              "runAfter": {
+                "Compose_Deadline": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@{items('Apply_to_each_contact')?['EmailContacto']}",
+                  "emailMessage/Subject": "Inquérito de Satisfação - ProdOut",
+                  "emailMessage/Body": "<html>\n<body>\n<p>Caro(a) <strong>@{items('Apply_to_each_contact')?['Title']}</strong>,</p>\n\n<p>No âmbito do nosso Sistema de Gestão da Qualidade e compromisso com a melhoria contínua, \nsolicitamos a sua colaboração no preenchimento de um breve inquérito de satisfação sobre \nos serviços prestados pela ProdOut.</p>\n\n<p>A sua opinião é fundamental para aprimorarmos os nossos processos e garantirmos que continuamos \na corresponder às suas expectativas.</p>\n\n<p style=\"margin: 25px 0;\">\n<a href=\"@{outputs('Compose_Prefill_Link')}\" \n   style=\"background-color: #0078d4; color: white; padding: 12px 24px; \n          text-decoration: none; border-radius: 4px; display: inline-block;\">\n   Preencher Inquérito\n</a>\n</p>\n\n<p><strong>Prazo de resposta:</strong> até @{formatDateTime(outputs('Compose_Deadline'), 'dd/MM/yyyy')}</p>\n\n<p>O inquérito demora aproximadamente 5 minutos a preencher e as suas respostas são tratadas \ncom total confidencialidade de acordo com o RGPD.</p>\n\n<p>Agradecemos antecipadamente a sua colaboração.</p>\n\n<p>Com os melhores cumprimentos,<br>\n<strong>Equipa ProdOut</strong></p>\n</body>\n</html>",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Update_contact_status": {
+              "runAfter": {
+                "Send_survey_email": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+                  "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+                  "id": "@items('Apply_to_each_contact')?['ID']",
+                  "item": {
+                    "EstadoInquerito": "Email Enviado",
+                    "DataEnvioInicial": "@{utcNow()}",
+                    "PrazoResposta": "@{outputs('Compose_Deadline')}",
+                    "LinkFormularioPrefill": "@{outputs('Compose_Prefill_Link')}",
+                    "NumeroReminders": 0
+                  }
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Delay": {
+              "runAfter": {
+                "Update_contact_status": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Wait",
+              "inputs": {
+                "interval": {
+                  "count": 2,
+                  "unit": "Second"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Get_pending_contacts": [
+              "Succeeded"
+            ]
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 5
+            }
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
