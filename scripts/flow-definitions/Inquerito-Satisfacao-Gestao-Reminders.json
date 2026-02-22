@@ -1,0 +1,219 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "$connections": {
+      "defaultValue": {},
+      "type": "Object"
+    }
+  },
+  "triggers": {
+    "Recurrence": {
+      "recurrence": {
+        "frequency": "Day",
+        "interval": 1,
+        "schedule": {
+          "hours": [
+            "9"
+          ],
+          "minutes": [
+            0
+          ]
+        },
+        "timeZone": "GMT Standard Time"
+      },
+      "type": "Recurrence"
+    }
+  },
+  "actions": {
+    "Compose_Reminder_Threshold": {
+      "runAfter": {},
+      "type": "Compose",
+      "inputs": "@addDays(utcNow(), 3)",
+      "description": "Calcula data limite: hoje + 3 dias"
+    },
+    "Get_contacts_for_reminder": {
+      "runAfter": {
+        "Compose_Reminder_Threshold": [
+          "Succeeded"
+        ]
+      },
+      "type": "OpenApiConnection",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_sharepointonline",
+          "operationId": "GetItems",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+        },
+        "parameters": {
+          "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+          "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+          "query": {
+            "$filter": "(EstadoInquerito eq 'Email Enviado') and (PrazoResposta le '@{outputs('Compose_Reminder_Threshold')}') and (NumeroReminders lt 2)",
+            "$orderby": "PrazoResposta asc"
+          }
+        }
+      }
+    },
+    "Condition_Has_Reminders": {
+      "actions": {
+        "Apply_to_each_reminder": {
+          "foreach": "@outputs('Get_contacts_for_reminder')?['body/value']",
+          "actions": {
+            "Compose_Days_Remaining": {
+              "runAfter": {},
+              "type": "Compose",
+              "inputs": "@div(sub(ticks(items('Apply_to_each_reminder')?['PrazoResposta']), ticks(utcNow())), 864000000000)",
+              "description": "Calcula dias restantes até o prazo"
+            },
+            "Send_reminder_email": {
+              "runAfter": {
+                "Compose_Days_Remaining": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@{items('Apply_to_each_reminder')?['EmailContacto']}",
+                  "emailMessage/Subject": "Lembrete: Inquérito de Satisfação - ProdOut",
+                  "emailMessage/Body": "<html>\n<body>\n<p>Caro(a) <strong>@{items('Apply_to_each_reminder')?['Title']}</strong>,</p>\n\n<p>Este é um lembrete amigável sobre o Inquérito de Satisfação da ProdOut que lhe enviámos.</p>\n\n<p><strong>⏰ Prazo:</strong> @{formatDateTime(items('Apply_to_each_reminder')?['PrazoResposta'], 'dd/MM/yyyy')} \n<em>(faltam @{outputs('Compose_Days_Remaining')} dias)</em></p>\n\n<p>Se já preencheu o inquérito, por favor ignore esta mensagem. \nCaso contrário, agradecemos que disponibilize alguns minutos para nos dar o seu feedback.</p>\n\n<p style=\"margin: 25px 0;\">\n<a href=\"@{items('Apply_to_each_reminder')?['LinkFormularioPrefill']}\" \n   style=\"background-color: #0078d4; color: white; padding: 12px 24px; \n          text-decoration: none; border-radius: 4px; display: inline-block;\">\n   Preencher Inquérito\n</a>\n</p>\n\n<p>A sua opinião é muito importante para nós!</p>\n\n<p>Com os melhores cumprimentos,<br>\n<strong>Equipa ProdOut</strong></p>\n</body>\n</html>",
+                  "emailMessage/Importance": "Normal"
+                }
+              }
+            },
+            "Update_reminder_counter": {
+              "runAfter": {
+                "Send_reminder_email": [
+                  "Succeeded"
+                ]
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+                  "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+                  "id": "@items('Apply_to_each_reminder')?['ID']",
+                  "item": {
+                    "NumeroReminders": "@{add(items('Apply_to_each_reminder')?['NumeroReminders'], 1)}",
+                    "DataUltimoReminder": "@{utcNow()}"
+                  }
+                }
+              }
+            },
+            "Delay_Between_Emails": {
+              "runAfter": {
+                "Update_reminder_counter": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Wait",
+              "inputs": {
+                "interval": {
+                  "count": 3,
+                  "unit": "Second"
+                }
+              }
+            }
+          },
+          "runAfter": {},
+          "type": "Foreach"
+        }
+      },
+      "runAfter": {
+        "Get_contacts_for_reminder": [
+          "Succeeded"
+        ]
+      },
+      "expression": {
+        "greater": [
+          {
+            "length": "@outputs('Get_contacts_for_reminder')?['body/value']"
+          },
+          0
+        ]
+      },
+      "type": "If",
+      "description": "Verifica se existem contactos elegíveis para reminder"
+    },
+    "Get_expired_surveys": {
+      "runAfter": {
+        "Condition_Has_Reminders": [
+          "Succeeded",
+          "Skipped"
+        ]
+      },
+      "type": "OpenApiConnection",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_sharepointonline",
+          "operationId": "GetItems",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+        },
+        "parameters": {
+          "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+          "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+          "query": {
+            "$filter": "(EstadoInquerito eq 'Email Enviado') and (PrazoResposta lt '@{utcNow()}')"
+          }
+        }
+      },
+      "description": "Obter inquéritos que ultrapassaram o prazo"
+    },
+    "Condition_Has_Expired": {
+      "actions": {
+        "Apply_to_each_expired": {
+          "foreach": "@outputs('Get_expired_surveys')?['body/value']",
+          "actions": {
+            "Mark_as_expired": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "PatchItem",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+                  "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+                  "id": "@items('Apply_to_each_expired')?['ID']",
+                  "item": {
+                    "EstadoInquerito": "Expirado"
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {},
+          "type": "Foreach"
+        }
+      },
+      "runAfter": {
+        "Get_expired_surveys": [
+          "Succeeded"
+        ]
+      },
+      "expression": {
+        "greater": [
+          {
+            "length": "@outputs('Get_expired_surveys')?['body/value']"
+          },
+          0
+        ]
+      },
+      "type": "If",
+      "description": "Verifica se existem inquéritos expirados"
+    }
+  }
+}

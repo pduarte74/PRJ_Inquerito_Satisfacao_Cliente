@@ -2,21 +2,21 @@
 
 **Última atualização:** 22/02/2026  
 **Responsável:** pduarte  
-**Sessão:** #1 - Setup Inicial [CONCLUÍDA] ✅
+**Sessão:** #2 - Desenvolvimento dos Fluxos [EM PROGRESSO] 🚧
 
 ---
 
 ## 📊 Resumo Executivo
 
-**Status:** ✅ Setup Completo - Pronto para Desenvolvimento dos Fluxos
+**Status:** 📦 Definições JSON Criadas - Pronto para Implementação Manual
 
-**Progresso geral:** 90% (Setup) → Próximo: Implementação Power Automate
+**Progresso geral:** 95% (Setup + Definições) → Próximo: Criar Flows no Portal
 
-**Próxima sessão (#2):** Desenvolvimento dos 3 Fluxos Power Automate
+**Sessão atual (#2):** Desenvolvimento dos 3 Fluxos Power Automate
 
-**Sessão atual iniciada:** 22/02/2026  
-**Objetivo da sessão:** Configurar todos os componentes base do projeto (Azure AD, SharePoint, Forms, Power Platform)  
-**Status:** ✅ Azure AD, SharePoint e Forms configurados com sucesso!
+**Sessão iniciada:** 22/02/2026  
+**Objetivo da sessão:** Criar definições JSON completas dos 3 fluxos e guia de implementação  
+**Status:** ✅ Definições JSON criadas + Guia prático completo!
 
 ---
 
@@ -94,20 +94,27 @@
 **Solução:** `inquerito-satisfacao-cliente`  
 **Solution ID:** `[Preencher após criar solução]`
 
-### Flows
+### Flows ⭐ SESSÃO #2
 - [x] Arquitetura documentada (3 fluxos)
-- [ ] Flow 1: Envio de Inquéritos (implementação pendente)
-- [ ] Flow 2: Captura de Respostas (implementação pendente)
-- [ ] Flow 3: Gestão de Reminders (implementação pendente)
+- [x] **Definições JSON criadas** (22/02/2026) ⭐ NOVO
+- [x] **Guia de implementação prático criado** (22/02/2026) ⭐ NOVO
+- [ ] Flow 1: Envio de Inquéritos (aguarda criação manual)
+- [ ] Flow 2: Captura de Respostas (aguarda criação manual)
+- [ ] Flow 3: Gestão de Reminders (aguarda criação manual)
 
-**Documentação:** [POWER-AUTOMATE-FLOWS.md](POWER-AUTOMATE-FLOWS.md)
+**Documentação:** 
+- [POWER-AUTOMATE-FLOWS.md](POWER-AUTOMATE-FLOWS.md) - Especificação técnica
+- [GUIA-IMPLEMENTACAO-FLOWS.md](GUIA-IMPLEMENTACAO-FLOWS.md) - Guia detalhado
+- [GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md](../GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md) ⭐ NOVO - Guia prático
 
-**Flows a implementar:**
-| Nome | Trigger | Status | Objetivo |
-|------|---------|--------|----------|
-| Inquerito-Satisfacao-Envio-Inicial | Manual/Agendado | 📋 Documentado | Enviar links pré-preenchidos |
-| Inquerito-Satisfacao-Captura-Respostas | Forms Response | 📋 Documentado | Capturar e gravar respostas |
-| Inquerito-Satisfacao-Reminders | Diário 09:00 | 📋 Documentado | Enviar lembretes automáticos |
+**Definições JSON criadas:**
+| Ficheiro JSON | Trigger | Status | Localização |
+|---------------|---------|--------|-------------|
+| Inquerito-Satisfacao-Captura-Respostas.json | Forms Response | 📦 Pronto | scripts/flow-definitions/ |
+| Inquerito-Satisfacao-Envio-Inicial.json | Manual/Instant | 📦 Pronto | scripts/flow-definitions/ |
+| Inquerito-Satisfacao-Gestao-Reminders.json | Recurrence | 📦 Pronto | scripts/flow-definitions/ |
+
+**Próximo passo:** Implementar flows manualmente no Power Automate seguindo o [GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md](../GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md)
 
 ---
 
@@ -149,11 +156,45 @@
 - POWER-AUTOMATE-FLOWS.md ✅ NOVO
 
 **Próximos passos para completar:**
-1. Criar solução no Power Platform
-2. Implementar Flow 1: Envio de Inquéritos
-3. Implementar Flow 2: Captura de Respostas
-4. Implementar Flow 3: Gestão de Reminders
-5. Testar end-to-end
+1. ~~Criar solução no Power Platform~~ (adiado, pode ser criado depois)
+2. Implementar Flow 2: Captura de Respostas (começar por este - é crítico)
+3. Testar Flow 2 com resposta real do Forms
+4. Implementar Flow 1: Envio de Inquéritos
+5. Implementar Flow 3: Gestão de Reminders
+6. Testar end-to-end completo
+
+---
+
+### ⭐ Iteração/Sessão 2: Desenvolvimento dos Fluxos 🚧 EM PROGRESSO
+**Data início:** 22/02/2026  
+**Data conclusão:** [Em progresso]  
+**Objetivo:** Criar definições JSON completas dos 3 fluxos Power Automate e guia de implementação
+
+**Completado:**
+- [x] Criado branch `sessao-02-desenvolvimento-flows`
+- [x] Analisada documentação técnica completa
+- [x] Definição JSON Fluxo 2 - Captura de Respostas criada
+- [x] Definição JSON Fluxo 1 - Envio Inicial criada
+- [x] Definição JSON Fluxo 3 - Gestão de Reminders criada
+- [x] Guia prático de implementação criado (GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md)
+- [x] README.md criado em flow-definitions/
+- [ ] Implementação manual do Fluxo 2 no Power Automate
+- [ ] Teste do Fluxo 2 com resposta real
+- [ ] Implementação manual do Fluxo 1 no Power Automate
+- [ ] Implementação manual do Fluxo 3 no Power Automate
+- [ ] Testes end-to-end
+
+**Ficheiros criados:**
+- scripts/flow-definitions/Inquerito-Satisfacao-Captura-Respostas.json ✅
+- scripts/flow-definitions/Inquerito-Satisfacao-Envio-Inicial.json ✅
+- scripts/flow-definitions/Inquerito-Satisfacao-Gestao-Reminders.json ✅
+- scripts/flow-definitions/README.md ✅
+- GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md ✅
+
+**Documentação atualizada:**
+- docs/ESTADO-ATUAL.md ✅
+
+**Próximo passo:** Seguir [GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md](../GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md) para criar os flows manualmente no Power Automate (começar pelo Fluxo 2)
 
 ---
 
@@ -263,6 +304,20 @@
 ---
 
 ## 🔄 Últimas Mudanças
+
+### 22/02/2026 - Sessão #2: Definições JSON dos Fluxos Power Automate ⭐ NOVO
+**Tipo:** Feature  
+**Descrição:** Criadas definições JSON completas dos 3 fluxos Power Automate (Captura, Envio, Reminders) + guia prático de implementação passo-a-passo. Branch `sessao-02-desenvolvimento-flows` criado.  
+**Ficheiros criados:** 
+- `scripts/flow-definitions/Inquerito-Satisfacao-Captura-Respostas.json` (Fluxo 2 - crítico)
+- `scripts/flow-definitions/Inquerito-Satisfacao-Envio-Inicial.json` (Fluxo 1)
+- `scripts/flow-definitions/Inquerito-Satisfacao-Gestao-Reminders.json` (Fluxo 3)
+- `scripts/flow-definitions/README.md` (documentação das definições)
+- `GUIA-RAPIDO-IMPLEMENTACAO-FLOWS.md` (guia prático raiz do projeto)  
+**Ficheiros atualizados:**
+- `docs/ESTADO-ATUAL.md` (progresso da Sessão #2)  
+**Ordem de implementação:** Fluxo 2 → Fluxo 1 → Fluxo 3  
+**Próximo passo:** Implementar Fluxo 2 manualmente no Power Automate seguindo o guia
 
 ### 22/02/2026 - Campos Adicionais e Importação de Contactos
 **Tipo:** Feature + Data Import  

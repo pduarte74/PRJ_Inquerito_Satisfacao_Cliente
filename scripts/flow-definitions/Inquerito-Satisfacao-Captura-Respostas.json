@@ -1,0 +1,168 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "$connections": {
+      "defaultValue": {},
+      "type": "Object"
+    }
+  },
+  "triggers": {
+    "When_a_new_response_is_submitted": {
+      "type": "OpenApiConnectionWebhook",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_microsoftforms",
+          "operationId": "CreateFormWebhook",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms"
+        },
+        "parameters": {
+          "form_id": "8geWAb3LXkKnsbyNDZej5D2DIYsnsUZNh2DUOrRLJdtURFFMQzBBVFNXTU9OVEZGWlExT1dYMDE5NiQlQCN0PWcu"
+        }
+      }
+    }
+  },
+  "actions": {
+    "Get_response_details": {
+      "runAfter": {},
+      "type": "OpenApiConnection",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_microsoftforms",
+          "operationId": "GetFormResponse",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms"
+        },
+        "parameters": {
+          "form_id": "8geWAb3LXkKnsbyNDZej5D2DIYsnsUZNh2DUOrRLJdtURFFMQzBBVFNXTU9OVEZGWlExT1dYMDE5NiQlQCN0PWcu",
+          "response_id": "@triggerOutputs()?['body/resourceData/responseId']"
+        }
+      }
+    },
+    "Get_items": {
+      "runAfter": {
+        "Get_response_details": [
+          "Succeeded"
+        ]
+      },
+      "type": "OpenApiConnection",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_sharepointonline",
+          "operationId": "GetItems",
+          "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+        },
+        "parameters": {
+          "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+          "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+          "query": {
+            "$filter": "EmailContacto eq '@{outputs('Get_response_details')?['body/r7b2bd52ed2764c57803595d6c3ca2bb7']}'",
+            "$top": 1
+          }
+        },
+        "metadata": {
+          "flowSystemMetadata": {
+            "swaggerOperationId": "GetItems"
+          }
+        }
+      }
+    },
+    "Condition_Item_Found": {
+      "actions": {
+        "Update_item": {
+          "runAfter": {},
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "PatchItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://prodoutlda.sharepoint.com/sites/SistemadeGesto-Qualidade",
+              "table": "af4ef457-b004-4838-b917-8720346b9a8f",
+              "id": "@{first(outputs('Get_items')?['body/value'])?['ID']}",
+              "item": {
+                "Title": "@{outputs('Get_response_details')?['body/r4a23b53b26c94fceb200c0bb59ca92d9']}",
+                "EmailContacto": "@{outputs('Get_response_details')?['body/r7b2bd52ed2764c57803595d6c3ca2bb7']}",
+                "Funcao": "@{outputs('Get_response_details')?['body/rd1db5d1cfeb04e50a01a18b4e4dc2bca']}",
+                "Entidade": "@{outputs('Get_response_details')?['body/r093e6f2fc8744c43990e68b5eda96adc']}",
+                "ConsentimentoRGPD": "@{outputs('Get_response_details')?['body/r8fe48e19d79549bf8cf1e1a1e2223d1c']}",
+                "CaracteristicasAssociadas": "@{outputs('Get_response_details')?['body/rc38c74906d884d51b8a93e3bbdd74aa9']}",
+                "AvaliacaoServicoIntegrado": "@{outputs('Get_response_details')?['body/ra86f09da48214fc19234c1ad8c2f3c49']}",
+                "AvaliacaoCertificacoes": "@{outputs('Get_response_details')?['body/re9e5802d0c844f069ee8bc4aaa5fb3c1']}",
+                "AvaliacaoExperiencia": "@{outputs('Get_response_details')?['body/r22e3f0fe5baa4e13beabcf6bfbdde8a1']}",
+                "AvaliacaoCompreensaoNecessidades": "@{outputs('Get_response_details')?['body/r18086fb5de1f4b8586a3ba862cd0f9df']}",
+                "AvaliacaoRapidezEficacia": "@{outputs('Get_response_details')?['body/r7b84c2aaac4143478cd929b5ca65e38e']}",
+                "AvaliacaoEntrega": "@{outputs('Get_response_details')?['body/r68afb7c83b6d43d293b9bb4bff20f063']}",
+                "AvaliacaoAcondicionamento": "@{outputs('Get_response_details')?['body/r9f37e98a33c44e638a0f1b9a62a20ff3']}",
+                "AvaliacaoImprevistos": "@{outputs('Get_response_details')?['body/r56fb5ac8d5fa48059f69f27a91f6e50b']}",
+                "SugestoesServicosProdutos": "@{outputs('Get_response_details')?['body/rf6a1ca933f214fcb874a92e02f61c9b5']}",
+                "SugestoesDesafios": "@{outputs('Get_response_details')?['body/rf5943b498a1241019699e87a12346f46']}",
+                "RecomendariaProdOut": "@{outputs('Get_response_details')?['body/rc39ade3652324f5696be166a8df5c2a3']}",
+                "EstadoInquerito": "Respondido",
+                "DataResposta": "@{utcNow()}",
+                "ResponseId": "@{outputs('Get_response_details')?['body/responseId']}"
+              }
+            }
+          }
+        },
+        "Send_email_thankyou": {
+          "runAfter": {
+            "Update_item": [
+              "Succeeded"
+            ]
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365",
+              "operationId": "SendEmailV2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+            },
+            "parameters": {
+              "emailMessage/To": "@{outputs('Get_response_details')?['body/r7b2bd52ed2764c57803595d6c3ca2bb7']}",
+              "emailMessage/Subject": "Obrigado pela sua participação - ProdOut",
+              "emailMessage/Body": "<html>\n<body>\n<p>Caro(a) <strong>@{outputs('Get_response_details')?['body/r4a23b53b26c94fceb200c0bb59ca92d9']}</strong>,</p>\n\n<p>Muito obrigado por ter completado o nosso Inquérito de Satisfação!</p>\n\n<p>A sua opinião é extremamente valiosa para nós e ajuda-nos a melhorar continuamente \na qualidade dos nossos serviços.</p>\n\n<p>Todas as sugestões e comentários serão cuidadosamente analisados pela nossa equipa \nno âmbito do Sistema de Gestão da Qualidade.</p>\n\n<p>Continuamos ao seu dispor para qualquer questão ou esclarecimento adicional.</p>\n\n<p>Com os melhores cumprimentos,<br>\n<strong>Equipa ProdOut</strong></p>\n</body>\n</html>",
+              "emailMessage/Importance": "Normal"
+            }
+          }
+        }
+      },
+      "runAfter": {
+        "Get_items": [
+          "Succeeded"
+        ]
+      },
+      "else": {
+        "actions": {
+          "Send_error_email": {
+            "runAfter": {},
+            "type": "OpenApiConnection",
+            "inputs": {
+              "host": {
+                "connectionName": "shared_office365",
+                "operationId": "SendEmailV2",
+                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+              },
+              "parameters": {
+                "emailMessage/To": "qualidade@prodout.pt",
+                "emailMessage/Subject": "ERRO - Resposta Forms sem match no SharePoint",
+                "emailMessage/Body": "<p><strong>Erro ao processar resposta do Forms</strong></p>\n<p><strong>Response ID:</strong> @{outputs('Get_response_details')?['body/responseId']}</p>\n<p><strong>Email:</strong> @{outputs('Get_response_details')?['body/r7b2bd52ed2764c57803595d6c3ca2bb7']}</p>\n<p><strong>Nome:</strong> @{outputs('Get_response_details')?['body/r4a23b53b26c94fceb200c0bb59ca92d9']}</p>\n<p>Ação necessária: Verificar lista SharePoint e adicionar manualmente.</p>",
+                "emailMessage/Importance": "High"
+              }
+            }
+          }
+        }
+      },
+      "expression": {
+        "greater": [
+          {
+            "length": "@outputs('Get_items')?['body/value']"
+          },
+          0
+        ]
+      },
+      "type": "If"
+    }
+  }
+}
